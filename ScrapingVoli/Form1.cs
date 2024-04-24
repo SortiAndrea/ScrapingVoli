@@ -32,13 +32,16 @@ namespace ScrapingVoli
         {
             InitializeComponent();
 
+            PopulateAirports();
+            InitializeListView();
+
             // Aggiungi il gestore dell'evento SelectedIndexChanged alla ListView
             listView1.SelectedIndexChanged += new EventHandler(listView1_SelectedIndexChanged);
             // Nascondi la ListView all'inizio
             listView1.Visible = false;
 
             // Associa l'evento del clic alla TextBox
-            txtPartenza.Click += new EventHandler(textBox2_Click);
+            textBox2.Click += new EventHandler(textBox2_Click);
 
             cbBudget.SelectedIndexChanged += new EventHandler(cbBudget_SelectedIndexChanged_1);
 
@@ -133,10 +136,11 @@ namespace ScrapingVoli
             // Mostra il testo selezionato nella TextBox
             if (listView1.SelectedItems.Count > 0)
             {
-                textBox1.Text = listView1.SelectedItems[0].Text;
+                textBox2.Text = listView1.SelectedItems[0].Text;
             }
 
         }
+
 
         private void cbBudget_SelectedIndexChanged_1(object sender, EventArgs e)
         {
@@ -179,6 +183,7 @@ namespace ScrapingVoli
             }
         }
 
+
         private void dtPartenza_ValueChanged(object sender, EventArgs e)
         {
             DateTime selectedDate = dtPartenza.Value;
@@ -187,6 +192,7 @@ namespace ScrapingVoli
             string formattedDate = selectedDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         }
 
+
         private void dtRitorno_ValueChanged(object sender, EventArgs e)
         {
             DateTime selectedDate2 = dtRitorno.Value;
@@ -194,6 +200,7 @@ namespace ScrapingVoli
             // Formatta la data nel formato desiderato (anno-mese-giorno) utilizzando la cultura "en-US"
             string formattedDate2 = selectedDate2.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         }
+
 
         private void cbCategoria_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -236,6 +243,7 @@ namespace ScrapingVoli
             }
         }
 
+
         private void rbSpecifica_CheckedChanged(object sender, EventArgs e)
         {
             if (rbSpecifica.Checked)
@@ -244,6 +252,7 @@ namespace ScrapingVoli
 
             }
         }
+
 
         private void rbIntervallo_CheckedChanged(object sender, EventArgs e)
         {
@@ -258,6 +267,7 @@ namespace ScrapingVoli
                 dtRitorno.Visible = false;
             }
         }
+
 
         private void btnVolo_Click(object sender, EventArgs e)
         {
@@ -304,6 +314,21 @@ namespace ScrapingVoli
             Process.Start(txtLink.Text);
         }
 
+
+        private void textBox2_Click(object sender, EventArgs e)
+        {
+            // Mostra la ListView quando viene cliccata la TextBox
+            listView1.Visible = true;
+        }
+
+
+        private void txtPartenza_Click(object sender, EventArgs e)
+        {
+            rbIntervallo.Visible = true;
+            rbSpecifica.Visible = true;
+            panelPartenza.Visible = true;
+        }
+
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -348,7 +373,7 @@ namespace ScrapingVoli
         private void btnMeteo_Click_1(object sender, EventArgs e)
         {
             var luogo = textBox1.Text;
-            string url = $"https://www.3bmeteo.com/meteo/{luogo}";
+            string url = ($"https://www.ryanair.com/it/it/voli-low-cost/?from={{airportCode}}&out-from-date={{formattedDate}}&out-to-date={{formattedDate2}}&budget={{budget}}&trip-type-category={{tipoViaggio}}");
 
             ScrapingBrowser browser = new ScrapingBrowser();
             browser.AllowAutoRedirect = true;
@@ -360,7 +385,7 @@ namespace ScrapingVoli
             IWebDriver driver = new ChromeDriver(options);
 
             // Naviga verso la pagina web
-            driver.Navigate().GoToUrl($"https://www.3bmeteo.com/meteo/{luogo}");
+            driver.Navigate().GoToUrl($"https://www.ryanair.com/it/it/voli-low-cost/?from={{airportCode}}&out-from-date={{formattedDate}}&out-to-date={{formattedDate2}}&budget={{budget}}&trip-type-category={{tipoViaggio}}");
 
             try
             {
@@ -461,9 +486,60 @@ namespace ScrapingVoli
             }
         }
 
-        private void txtPartenza_Click(object sender, EventArgs e)
-        {
+        //----------------------------------------------------------------------------------------------------------------------------
 
+        private void btnScreenVolo_Click(object sender, EventArgs e)
+        {
+            var luogo = textBox1.Text;
+            string urlScreenVolo = ($"https://www.ryanair.com/it/it/voli-low-cost/?from={{airportCode}}&out-from-date={{formattedDate}}&out-to-date={{formattedDate2}}&budget={{budget}}&trip-type-category={{tipoViaggio}}");
+
+            ScrapingBrowser browser = new ScrapingBrowser();
+            browser.AllowAutoRedirect = true;
+            browser.AllowMetaRedirect = true;
+
+            // Inizializza il WebDriver di Chrome
+            ChromeOptions options = new ChromeOptions();
+            options.AddArgument("--start-maximized"); // Massimizza la finestra del browser
+            IWebDriver driver = new ChromeDriver(options);
+
+            // Naviga verso la pagina web
+            driver.Navigate().GoToUrl($"https://www.ryanair.com/it/it/voli-low-cost/?from={{airportCode}}&out-from-date={{formattedDate}}&out-to-date={{formattedDate2}}&budget={{budget}}&trip-type-category={{tipoViaggio}}");
+
+            try
+            {
+                // Trova il bottone tramite il selettore CSS, XPath o altri metodi di localizzazione
+                var buttonScreenVolo = driver.FindElement(By.CssSelector("div#cookie-popup-with-overlay"));
+                var buttonScreenVolo1 = buttonScreenVolo.FindElement(By.CssSelector("div.cookie-popup-with-overlay__box"));
+                var buttonScreenVolo2 = buttonScreenVolo1.FindElement(By.CssSelector("div.cookie-popup-with-overlay__buttons"));
+                var buttonScreenVolo3 = buttonScreenVolo2.FindElement(By.CssSelector("button.cookie-popup-with-overlay__button"));
+
+
+                // Esegui il clic sul bottone
+                buttonScreenVolo3.Click();
+
+                IWebElement divElement = driver.FindElement(By.XPath("//div[@class='FR']")); // Cambia 'tuo_id_div' con l'id effettivo del tuo div
+                IWebElement child = divElement.FindElement(By.XPath(".//main[@ui-view='mainView']")); // Cambia 'tuo_id_div' con l'id effettivo del tuo div
+                IWebElement child1 = child.FindElement(By.XPath(".//div[@class='farefinder-expanded']")); // Cambia 'tuo_id_div' con l'id effettivo del tuo div
+                IWebElement child2 = child1.FindElement(By.XPath(".//div[@class='container results-container']")); // Cambia 'tuo_id_div' con l'id effettivo del tuo div
+
+                // Ora puoi catturare uno screenshot del quinto figlio div
+                Screenshot screenshot = ((ITakesScreenshot)child2).GetScreenshot();
+                screenshot.SaveAsFile($"div_screenshot{num}.png");
+            }
+
+            catch (NoSuchElementException ex)
+            {
+                Console.WriteLine("Uno dei div non è stato trovato: " + ex.Message);
+            }
+
+            finally
+            {
+                // Chiudi il WebDriver
+                driver.Quit();
+                pictureBox4.Image = Image.FromFile($"div_screenshot{num}.png");
+
+                num++;
+            }
         }
 
         //----------------------------------------------------------------------------------------------------------------------------
